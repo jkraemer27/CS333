@@ -106,3 +106,53 @@ sys_halt(void){
   return 0;
 }
 
+#ifdef CS333_P2
+uint 
+sys_getuid(void)
+{
+    return proc -> uid;
+}
+
+uint 
+sys_getgid(void)
+{
+    return proc -> gid;
+}
+
+uint 
+sys_getppid(void)
+{
+    if(proc -> parent)
+	return proc -> parent -> pid;
+    else
+	return 1;
+}
+
+int 
+sys_setuid(void)
+{
+    int uid;
+
+    if(argint(0, &uid) < 0)
+	return -1;
+    else if (uid > 32767)
+	return -1;
+    else
+	return uid;
+}
+
+int 
+sys_setgid(void)
+{
+    int gid;
+
+    if(argint(0, &gid) < 0)
+	return -1;
+    else if (gid > 32767)
+	return -1;
+    else
+	return gid;
+}
+
+#endif
+
