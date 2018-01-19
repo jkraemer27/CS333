@@ -32,6 +32,7 @@ pinit(void)
 // state required to run in the kernel.
 // Otherwise return 0.
 //test
+//test2
 static struct proc*
 allocproc(void)
 {
