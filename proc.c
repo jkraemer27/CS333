@@ -6,6 +6,7 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+#include "uproc.h"
 
 struct {
   struct spinlock lock;
@@ -73,6 +74,10 @@ found:
   p->context->eip = (uint)forkret;
   #ifdef CS333_P1
   p->start_ticks = ticks;
+  #endif
+  #ifdef CS333_P2
+  p -> cpu_ticks_total = 0;
+  p -> cpu_ticks_in = 0;
   #endif
   return p;
 }
@@ -149,6 +154,11 @@ fork(void)
   np->sz = proc->sz;
   np->parent = proc;
   *np->tf = *proc->tf;
+
+    #ifdef CS333_P2
+    np -> uid = proc -> uid;
+    np -> gid = proc -> gid;
+    #endif
 
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
@@ -309,6 +319,9 @@ scheduler(void)
       proc = p;
       switchuvm(p);
       p->state = RUNNING;
+      #ifdef CS333_P2
+      p->cpu_ticks_in = ticks;
+      #endif
       swtch(&cpu->scheduler, proc->context);
       switchkvm();
 
@@ -329,7 +342,7 @@ scheduler(void)
 void
 scheduler(void)
 {
-
+    
 }
 #endif
 
@@ -350,8 +363,13 @@ sched(void)
   if(readeflags()&FL_IF)
     panic("sched interruptible");
   intena = cpu->intena;
+    #ifdef CS333_P2
+    proc -> cpu_ticks_total += (ticks - proc -> cpu_ticks_in);
+    #endif
   swtch(&proc->context, cpu->scheduler);
   cpu->intena = intena;
+
+
 }
 #else
 void
@@ -506,14 +524,13 @@ static char *states[] = {
 void
 procdump(void)
 {
-  int i;
+  int i, elapsed;
   struct proc *p;
   char *state = "???";
   uint pc[10];
   
-  
     #ifdef CS333_P1
-    cprintf("PID      State   Name    Elapsed         PCs\n");
+    cprintf("PID      State   Name    Elapsed         PCs test\n");
     #endif
 
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
@@ -523,10 +540,11 @@ procdump(void)
       state = states[p->state];
 
     #ifdef CS333_P1
-    int elapsed = ticks - p -> start_ticks;
+    elapsed = ticks - p -> start_ticks;
     cprintf("%d\t %s\t %s\t %d\t\t", p -> pid, state, p -> name , elapsed, "\n");
     #else
     cprintf("%d %s %s", p->pid, state, p->name);
+    cprintf("\n");
     #endif
 
     if(p->state == SLEEPING){
@@ -536,4 +554,37 @@ procdump(void)
     }
     cprintf("\n");
   }
+}
+int 
+getprocs(uint max, struct uproc* table)
+{
+    int i = 0;
+    struct proc *p;
+
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  {
+    if(p->state == RUNNABLE || p->state == SLEEPING || p-> state == RUNNING)
+    {
+      if(i < max)
+      {
+	table[i].pid = p -> pid;
+	table[i].uid = p -> uid;
+	table[i].gid = p -> gid;
+	table[i].ppid = p -> parent -> pid;
+	table[i].elapsed_ticks = ticks - (p -> start_ticks);
+	table[i].CPU_total_ticks = ticks;
+	strncpy(table[i].state, states[p->state],STRMAX );
+	table[i].size = p -> sz;
+	strncpy(table[i].name,p -> name, max);
+
+	++i;
+       }
+       else
+	return i;
+     }
+    else
+     return -1;
+   }
+
+    return 0;
 }

@@ -6,6 +6,7 @@
 #include "memlayout.h"
 #include "mmu.h"
 #include "proc.h"
+#include "uproc.h"
 
 int
 sys_fork(void)
@@ -154,5 +155,19 @@ sys_setgid(void)
 	return gid;
 }
 
+int
+sys_getprocs(void)
+{
+    int num;
+    struct uproc *procarray;
+
+    if(argint(0, &num) < 0)
+	return -1;
+    
+    if(argptr(0, (void*)&procarray, sizeof(struct uproc)) < 0)
+	return -1;  
+
+    return 1;
+}
 #endif
 
