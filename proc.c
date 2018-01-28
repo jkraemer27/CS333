@@ -524,28 +524,78 @@ static char *states[] = {
 void
 procdump(void)
 {
-  int i, elapsed;
+  int i, elapsed, milli, cpue, cpum;
   struct proc *p;
   char *state = "???";
   uint pc[10];
   
-    #ifdef CS333_P1
-    cprintf("PID      State   Name    Elapsed         PCs test\n");
+    //#ifdef CS333_P1
+    //cprintf("PID      State   Name    Elapsed         PCs test\n");
+    //#endif
+
+    #ifdef CS333_P2
+    cprintf("PID	Name    UID	GID	PPID    Elapsed	CPU	State   Size    PCs\n");
     #endif
 
+
+    acquire(&ptable.lock);
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
     if(p->state == UNUSED)
       continue;
     if(p->state >= 0 && p->state < NELEM(states) && states[p->state])
       state = states[p->state];
 
-    #ifdef CS333_P1
-    elapsed = ticks - p -> start_ticks;
-    cprintf("%d\t %s\t %s\t %d\t\t", p -> pid, state, p -> name , elapsed, "\n");
-    #else
-    cprintf("%d %s %s", p->pid, state, p->name);
-    cprintf("\n");
+    //#ifdef CS333_P1
+    //elapsed = ticks - p -> start_ticks;
+    //cprintf("%d\t %s\t %s\t %d\t\t", p -> pid, state, p -> name , elapsed, "\n");
+    //#else
+    //cprintf("%d %s %s", p->pid, state, p->name);
+    //cprintf("\n");
+    //#endif
+
+    #ifdef CS333_P2
+    elapsed = (ticks - p -> start_ticks)/1000;
+    milli = (ticks - p -> start_ticks)%1000;
+    cpue = (p -> cpu_ticks_total)/1000;
+    cpum = (p -> cpu_ticks_total)%1000;
+
+    if(p -> pid == 1){
+	cprintf("%d\t%s\t%d\t%d\t%d\t%d.", p -> pid, p -> name, p -> uid, p -> gid ,1,  elapsed);
+	if(milli < 10)
+	    cprintf("00%d\t%d.", milli, cpue);
+	if(milli > 9 && milli < 100)
+	    cprintf("0%d\t%d.", milli, cpue);
+	else
+	    cprintf("%d\t%d.", milli, cpue);
+
+	if(cpum < 10)
+	    cprintf("00%d\t%s\t%d\t", cpum, state, p->sz, "\n");
+	if(cpum > 9 && cpum < 100)
+	    cprintf("0%d\t%s\t%d\t", cpum, state, p->sz, "\n");
+	else
+	    cprintf("%d\t%s\t%d\t", cpum, state, p->sz, "\n");
+	}
+    else{
+	cprintf("%d\t%s\t%d\t%d\t%d\t%d.", p -> pid, p -> name, p -> uid, p -> gid ,p -> parent -> pid,  elapsed);
+	if(milli < 10)
+	    cprintf("00%d\t%d.", milli, cpue);
+	if(milli > 9 && milli < 100)
+	    cprintf("0%d\t%d.", milli, cpue);
+	else
+	    cprintf("%d\t%d.", milli, cpue);
+
+	if(cpum < 10)
+	    cprintf("00%d\t%s\t%d\t", cpum, state, p->sz, "\n");
+	if(cpum > 9 && cpum < 100)
+	    cprintf("0%d\t%s\t%d\t", cpum, state, p->sz, "\n");
+	else
+	    cprintf("%d\t%s\t%d\t", cpum, state, p->sz, "\n");
+	}
+
+    //cprintf("%d\t%s\t%d\t%d\t%d\t%d.%d\t%d.%d\t%s\t%d\t", p -> pid, p -> name, p -> uid, p -> gid ,p -> parent -> pid,  elapsed, milli,cpue,cpum, state, p->sz, "\n");
+
     #endif
+
 
     if(p->state == SLEEPING){
       getcallerpcs((uint*)p->context->ebp+2, pc);
@@ -554,37 +604,55 @@ procdump(void)
     }
     cprintf("\n");
   }
+
+    cprintf("\n");
+    release(&ptable.lock);
 }
+#ifdef CS333_P2
 int 
-getprocs(uint max, struct uproc* table)
+getproctable(uint max, struct uproc* table)
 {
     int i = 0;
     struct proc *p;
+    //acquire lock
+    acquire(&ptable.lock);
 
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-  {
-    if(p->state == RUNNABLE || p->state == SLEEPING || p-> state == RUNNING)
+ // for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+ for(i = 0; i < max; ++i)
+ {
+     p = &ptable.proc[i];
+    if(p -> state == RUNNABLE || p -> state == SLEEPING || p -> state == RUNNING)
     {
-      if(i < max)
-      {
+	/*
+	cprintf("%d\n", table[i].pid);
+
+	cprintf("%d\n", table[i].uid);
+
+	cprintf("%d\n", table[i].gid);*/
+	
 	table[i].pid = p -> pid;
 	table[i].uid = p -> uid;
 	table[i].gid = p -> gid;
-	table[i].ppid = p -> parent -> pid;
+
+	if(p -> pid == 1)
+	    table[i].ppid = 1;
+	else
+	    table[i].ppid = p -> parent -> pid;
+	    
 	table[i].elapsed_ticks = ticks - (p -> start_ticks);
-	table[i].CPU_total_ticks = ticks;
-	strncpy(table[i].state, states[p->state],STRMAX );
+
+	table[i].CPU_total_ticks = p -> cpu_ticks_total;
+
+	safestrcpy(table[i].state, states[p->state],strlen(states[p->state]) );
+
 	table[i].size = p -> sz;
-	strncpy(table[i].name,p -> name, max);
 
-	++i;
-       }
-       else
-	return i;
+	safestrcpy(table[i].name,p -> name, STRMAX);
+
      }
-    else
-     return -1;
    }
-
-    return 0;
+    //release lock
+    release(&ptable.lock);
+    return i;
 }
+#endif

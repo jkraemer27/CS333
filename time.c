@@ -11,38 +11,52 @@ main(int argc, char ** argv)
 
   strcpy(process, argv[1]);
 
-  printf(1, "%s%s\n",argv[1], " executing...");
+  if(!argv[1]){
+      printf(1, "\nNo argument provided!\n\nUse \"time [program]\"\n\n");
+      strcpy(process, "time");
+  }
+
   
   int begin = uptime();
-
-  //printf(1, "%s\t %d\n","Start time: ", begin);
-
 
   int pid = fork();
   if(pid > 0){
       //printf(1, "parent: child=%d\n", pid);
       pid = wait();
+
       //printf(1, "child %d is done\n", pid);
   }
-  else if(pid ==0){
-      //printf(1,"child: exiting\n");
-      exit();
-  }
-      else{
-	  //printf(1,"fork error\n");
+  else if(pid == 0){
+	  if(exec(argv[1], argv + 1) < 0){
+	      printf(1,"%s is not a valid program\n", process);
+	      exit();
+	  }
       }
 
-  exec("/bin/echo", argv);
- //execute the program
+      else
+	  printf(1,"fork error\n");
+
+      int end = uptime();
+
+      int total = (end - begin)/1000;
+      int milli = (end - begin)%1000;
 
 
-  int end = uptime();
-  //printf(1, "%s\t %d\n","End time: ", end);
+      printf(1, "%s%s\n",process, " executing...");
+      
+      if(milli < 10)
+      printf(1, "%s ran in %d.00%d seconds\n\n",process, total, milli, " seconds");
+      
+      if(milli > 9 && milli < 100)
+      printf(1, "%s ran in %d.0%d seconds\n\n",process, total, milli, " seconds");
+      
+      else
+      printf(1, "%s ran in %d.%d seconds\n\n",process, total, milli, " seconds");
 
-  int total = (end - begin)%1000;
 
-  
-  printf(1, "%s%d\n\n","Total time: .", total);
+
+
+
   exit();
 }
 

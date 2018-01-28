@@ -108,19 +108,19 @@ sys_halt(void){
 }
 
 #ifdef CS333_P2
-uint 
+int 
 sys_getuid(void)
 {
     return proc -> uid;
 }
 
-uint 
+int 
 sys_getgid(void)
 {
     return proc -> gid;
 }
 
-uint 
+int 
 sys_getppid(void)
 {
     if(proc -> parent)
@@ -136,10 +136,10 @@ sys_setuid(void)
 
     if(argint(0, &uid) < 0)
 	return -1;
-    else if (uid > 32767)
+    if(uid > 32767 || uid < 0)
 	return -1;
     else
-	return uid;
+	return proc -> uid = uid;
 }
 
 int 
@@ -149,10 +149,10 @@ sys_setgid(void)
 
     if(argint(0, &gid) < 0)
 	return -1;
-    else if (gid > 32767)
+    if(gid > 32767 || gid < 0)
 	return -1;
     else
-	return gid;
+	return proc -> gid = gid;
 }
 
 int
@@ -164,10 +164,11 @@ sys_getprocs(void)
     if(argint(0, &num) < 0)
 	return -1;
     
-    if(argptr(0, (void*)&procarray, sizeof(struct uproc)) < 0)
-	return -1;  
+    if(argptr(1, (void*)&procarray, sizeof(struct uproc)) < 0)
+	return -1;
 
-    return 1;
+   getproctable(num, procarray);
+   return 1;
 }
 #endif
 
