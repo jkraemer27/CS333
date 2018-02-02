@@ -8,9 +8,24 @@
 #include "spinlock.h"
 #include "uproc.h"
 
+
+#ifdef CS333_P3P4
+struct StateLists {
+  struct proc* ready;
+  struct proc* free;
+  struct proc* sleep;
+  struct proc* zombie;
+  struct proc* running;
+  struct proc* embryo;
+};
+#endif
+
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
+#ifdef CS333_P3P4
+  struct StateLists pLists;
+#endif
 } ptable;
 
 static struct proc *initproc;
@@ -20,6 +35,273 @@ extern void forkret(void);
 extern void trapret(void);
 
 static void wakeup1(void *chan);
+
+#ifdef CS333_P3P4
+//helper functions go here
+
+//static int
+//removeFromStateList(struct proc** sList, struct proc* p);
+/*
+static void
+assertStateReady(struct proc* p, enum procstate state);
+*/
+static void
+assertStateFree(struct proc* p);
+/*
+static void
+assertStateSleep(struct proc* p, enum procstate state);
+*/
+static void
+assertStateZombie(struct proc* p);
+/*
+static void
+assertStateRunning(struct proc* p, enum procstate state);
+static void
+assertStateEmbryo(struct proc* p, enum procstate state);
+
+
+static int
+addToReadyStateListHead(struct proc** sList, struct proc* p);
+*/
+//static int
+//addToStateListHead(struct proc** sList, struct proc* p);
+/*
+static int
+addToSleepStateListHead(struct proc** sList, struct proc* p);
+static int
+addToZombieStateListHead(struct proc** sList, struct proc* p);
+static int
+addToRunningStateListHead(struct proc** sList, struct proc* p);
+static int
+addToEmbryoStateListHead(struct proc** sList, struct proc* p);
+*/
+
+static int
+addToStateListEnd(struct proc** sList, struct proc* p);
+/*
+static int
+addToFreeStateListEnd(struct proc** sList, struct proc* p);
+static int
+addToSleepStateListEnd(struct proc** sList, struct proc* p);
+static int
+addToZombieStateListEnd(struct proc** sList, struct proc* p);
+static int
+addToRunningStateListEnd(struct proc** sList, struct proc* p);
+static int
+addToEmbryoStateListEnd(struct proc** sList, struct proc* p);
+*/
+///////////////////// Assert Functions ///////////////////
+/*
+static void
+assertStateReady(struct proc* p, enum procstate state){
+    if(p -> state != RUNNABLE)
+	panic("Process not in a RUNNABLE state");
+
+}
+*/
+static void
+assertStateFree(struct proc* p){
+    if(p -> state != UNUSED)
+	panic("Process not in an UNUSED state");
+
+}
+/*
+static void
+assertStateSleep(struct proc* p, enum procstate state){
+    if(p -> state != SLEEPING)
+	panic("Process not in a SLEEPING state");
+
+}
+*/
+static void
+assertStateZombie(struct proc* p){
+    if(p -> state != ZOMBIE)
+	panic("Process not in a ZOMBIE state");
+}
+/*
+static void
+assertStateRunning(struct proc* p, enum procstate state){
+    if(p -> state != RUNNING)
+	panic("Process not in a RUNNING state");
+
+}
+static void
+assertStateEmbryo(struct proc* p, enum procstate state){
+    if(p -> state != EMBRYO)
+	panic("Process not in a EMBRYO state");
+
+}*/
+////////////////// Add to Head Functions ////////////////////
+
+/*
+static int
+addToReadyStateListHead(struct proc** sList, struct proc* p){
+    struct proc *temp = sList;
+    p -> next = temp;
+    sList -> ready = p;
+
+    return 1;
+
+}
+static int
+addToSleepStateListHead(struct proc** sList, struct proc* p){
+    struct proc *temp = sList;
+    p -> next = temp;
+    sList -> sleep = p;
+
+    return 1;
+
+}
+static int
+addToZombieStateListHead(struct proc** sList, struct proc* p){
+    struct proc *temp = sList;
+    p -> next = temp;
+    sList -> zombie = p;
+
+    return 1;
+
+}
+static int
+addToRunningStateListHead(struct proc** sList, struct proc* p){
+    struct proc *temp = sList;
+    p -> next = temp;
+    sList -> running = p;
+
+    return 1;
+
+}
+static int
+addToEmbryoStateListHead(struct proc** sList, struct proc* p){
+    struct proc *temp = sList;
+    p -> next = temp;
+    sList -> embryo = p;
+
+    return 1;
+
+}*/
+///////////////////// Add to End Functions //////////////////////
+
+static int
+addToStateListEnd(struct proc** sList, struct proc* p){
+
+    struct proc *current = *sList;
+
+    cprintf("current = sList\n");
+
+    if(current){
+
+    cprintf(" current -> next exists\n");
+    while(current -> next)
+	current = current -> next;
+    }
+    
+    cprintf("traversal to end of list complete\n");
+    current -> next = p;
+
+    cprintf("current -> next = p\n");
+
+    p -> next = 0;
+    cprintf("p -> next = 0\n");
+
+    return 0;
+}
+
+static int
+addToStateListHead(struct proc** sList, struct proc* p){
+
+    struct proc *temp = *sList;
+    p -> next = temp;
+    *sList = p;
+
+    return 0;
+
+}
+
+static int
+removeFromStateList(struct proc** sList, struct proc* p){
+    if(!sList)
+	return -1;
+
+    struct proc *current = *sList;
+    struct proc *previous = *sList;
+
+    while(current){
+	if(p == current)
+	    break;
+	previous = current;
+	current = current -> next;
+    }
+    if(!current)
+	return -1;
+
+    previous -> next = current -> next;
+    p -> next = 0;
+
+    return 0;
+
+}
+
+/*
+static int
+addToFreeStateListEnd(struct proc** sList, struct proc* p){
+    struct proc *current = sList -> free;
+    while(current -> next)
+	current = current -> next;
+
+    current -> next = p;
+
+    return 1;
+}
+*/
+/*
+static int
+addToSleepStateListEnd(struct proc** sList, struct proc* p){
+    struct proc *current = sList;
+    while(current -> next)
+	current = current -> next;
+
+    current -> next = p;
+
+    return 1;
+}
+
+static int
+addToZombieStateListEnd(struct proc** sList, struct proc* p){
+    struct proc *current = sList;
+    while(current -> next)
+	current = current -> next;
+
+    current -> next = p;
+
+    return 1;
+}
+
+static int
+addToRunningStateListEnd(struct proc** sList, struct proc* p){
+    struct proc *current = sList;
+    while(current -> next)
+	current = current -> next;
+
+    current -> next = p;
+
+    return 1;
+}
+
+static int
+addToEmbryoStateListEnd(struct proc** sList, struct proc* p){
+    struct proc *current = sList;
+    while(current -> next)
+	current = current -> next;
+
+    current -> next = p;
+
+    return 1;
+}*/
+
+/////////////////// Remove from State List Functions ////////////////////
+
+////////////////////////////////////////////////////////////////////////
+#endif
 
 void
 pinit(void)
@@ -48,13 +330,42 @@ allocproc(void)
   return 0;
 
 found:
+#ifdef CS333_P3P4
+  assertStateFree(p);
+
+  removeFromStateList(&ptable.pLists.free, p);
+
+  cprintf("successfully removed process from free list\n");
+  addToStateListEnd(&ptable.pLists.embryo, p);
+
+  cprintf("THIS IS WHERE THE CCCCCCCC IS COMING FROM\n");
+#endif 
   p->state = EMBRYO;
+
   p->pid = nextpid++;
   release(&ptable.lock);
 
   // Allocate kernel stack.
   if((p->kstack = kalloc()) == 0){
+
+#ifdef CS333_P3P4
+
+  cprintf("Acquiring lock\n");
+  acquire(&ptable.lock);
+
+  cprintf("Asserting state zombie\n");
+  assertStateZombie(p);
+
+  cprintf("Removing state zombie\n");
+  removeFromStateList(&ptable.pLists.zombie, p);
+
+  cprintf("Adding state Free\n");
+  addToStateListHead(&ptable.pLists.free, p);
+  release(&ptable.lock);
+#endif
     p->state = UNUSED;
+
+
     return 0;
   }
   sp = p->kstack + KSTACKSIZE;
@@ -89,8 +400,41 @@ userinit(void)
 {
   struct proc *p;
   extern char _binary_initcode_start[], _binary_initcode_size[];
+
+  #ifdef CS333_P3P4
   
+/*  struct proc* ready = 0;
+  struct proc* free =  ptable.proc;
+  struct proc* sleep = 0;
+  struct proc* zombie = 0;
+  struct proc* running = 0;
+  struct proc* embryo = 0;
+
+  cprintf("%d", ready);
+  cprintf("%d", free);
+  cprintf("%d", sleep);
+  cprintf("%d", zombie);
+  cprintf("%d", running);
+  cprintf("%d", embryo);*/
+
+  ptable.pLists.ready = 0;
+  ptable.pLists.free = 0;
+  ptable.pLists.sleep = 0;
+  ptable.pLists.zombie = 0;
+  ptable.pLists.running = 0;
+  ptable.pLists.embryo = 0;
+
+  acquire(&ptable.lock);
+  for(int i = 0; i < NPROC; i++){
+    addToStateListHead(&ptable.pLists.free, &ptable.proc[i]);
+  }
+  release(&ptable.lock);
+
+
+  #endif
+
   p = allocproc();
+
   initproc = p;
   if((p->pgdir = setupkvm()) == 0)
     panic("userinit: out of memory?");
@@ -109,6 +453,13 @@ userinit(void)
   p->cwd = namei("/");
 
   p->state = RUNNABLE;
+
+  #ifdef CS333_P3P4
+  assertStateFree(p);
+  removeFromStateList(&ptable.pLists.free, p);
+  addToStateListEnd(&ptable.pLists.ready, p);
+  #endif
+
 }
 
 // Grow current process's memory by n bytes.
@@ -342,7 +693,44 @@ scheduler(void)
 void
 scheduler(void)
 {
-    
+    struct proc *p;
+      int idle;  // for checking if processor is idle
+
+      for(;;){
+	// Enable interrupts on this processor.
+	sti();
+
+	idle = 1;  // assume idle unless we schedule a process
+	// Loop over process table looking for process to run.
+	acquire(&ptable.lock);
+	for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+	  if(p->state != RUNNABLE)
+	    continue;
+
+	  // Switch to chosen process.  It is the process's job
+	  // to release ptable.lock and then reacquire it
+	  // before jumping back to us.
+	  idle = 0;  // not idle this timeslice
+	  proc = p;
+	  switchuvm(p);
+	  p->state = RUNNING;
+	  #ifdef CS333_P2
+	  p->cpu_ticks_in = ticks;
+	  #endif
+	  swtch(&cpu->scheduler, proc->context);
+	  switchkvm();
+
+	  // Process is done running for now.
+	  // It should have changed its p->state before coming back.
+	  proc = 0;
+	}
+	release(&ptable.lock);
+	// if idle, wait for next interrupt
+	if (idle) {
+	  sti();
+	  hlt();
+	}
+      }
 }
 #endif
 
@@ -534,7 +922,7 @@ procdump(void)
     //#endif
 
     #ifdef CS333_P2
-    cprintf("PID	Name    UID	GID	PPID    Elapsed	CPU	State   Size    PCs\n");
+    cprintf("PID	Name    UID	GID	PPID    Elapsed	CPU	State   Size     PCs\n");
     #endif
 
 

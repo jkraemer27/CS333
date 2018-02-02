@@ -1,4 +1,4 @@
-#define NPROC        64  // maximum number of processes
+#define NPROC        72  // maximum number of processes
 #define KSTACKSIZE 4096  // size of per-process kernel stack
 #define NCPU          8  // maximum number of CPUs
 #define NOFILE       16  // open files per process
@@ -13,5 +13,5 @@
 // #define FSSIZE       1000  // size of file system in blocks
 #define FSSIZE       2000  // size of file system in blocks  // CS333 requires a larger FS.
 #define UIDGID	     0   // initial value of UID and GID set to 0
-#define MAXPROC	     64  //max num of processes
+#define MAXPROC	     16  //max num of processes
 
