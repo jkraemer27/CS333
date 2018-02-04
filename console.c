@@ -190,6 +190,11 @@ void
 consoleintr(int (*getc)(void))
 {
   int c, doprocdump = 0;
+  int doprintready  = 0;
+  int doprintfree   = 0;
+  int doprintsleep  = 0;
+  int doprintzombie = 0;
+
 
   acquire(&cons.lock);
   while((c = getc()) >= 0){
@@ -210,6 +215,22 @@ consoleintr(int (*getc)(void))
         consputc(BACKSPACE);
       }
       break;
+    #ifdef CS333_P3P4
+    case C('R'): //print PIDs in ready list
+	doprintready  = 1;
+    break;
+    case C('F'):
+	doprintfree   = 1;
+    break;
+    case C('S'):
+	doprintsleep  = 1;
+    break;
+    case C('Z'):
+	doprintzombie = 1;
+    break;
+
+
+    #endif
     default:
       if(c != 0 && input.e-input.r < INPUT_BUF){
         c = (c == '\r') ? '\n' : c;
@@ -227,6 +248,14 @@ consoleintr(int (*getc)(void))
   if(doprocdump) {
     procdump();  // now call procdump() wo. cons.lock held
   }
+  if(doprintready)
+      printready();
+  if(doprintfree)
+      printfree();
+  if(doprintsleep)
+      printsleep();
+  if(doprintzombie)
+      printzombie();
 }
 
 int

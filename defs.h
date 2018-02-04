@@ -119,8 +119,15 @@ void            userinit(void);
 int             wait(void);
 void            wakeup(void*);
 void            yield(void);
+#ifdef CS333_P2
 int		getproctable(uint max, struct uproc*);
-
+#endif
+#ifdef CS333_P3P4
+void		printready(void);
+void		printfree(void);
+void		printsleep(void);
+void		printzombie(void);
+#endif
 // swtch.S
 void            swtch(struct context**, struct context*);
 
