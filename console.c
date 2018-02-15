@@ -190,10 +190,14 @@ void
 consoleintr(int (*getc)(void))
 {
   int c, doprocdump = 0;
+
+#ifdef CS333_P3P4
   int doprintready  = 0;
   int doprintfree   = 0;
   int doprintsleep  = 0;
   int doprintzombie = 0;
+
+#endif
 
 
   acquire(&cons.lock);
@@ -248,6 +252,8 @@ consoleintr(int (*getc)(void))
   if(doprocdump) {
     procdump();  // now call procdump() wo. cons.lock held
   }
+
+#ifdef CS333_P3P4
   if(doprintready)
       printready();
   if(doprintfree)
@@ -256,6 +262,8 @@ consoleintr(int (*getc)(void))
       printsleep();
   if(doprintzombie)
       printzombie();
+
+#endif
 }
 
 int

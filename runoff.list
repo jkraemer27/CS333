@@ -91,3 +91,4 @@ testsetuid.c
 testSched.c
 testuidgid.c
 uproc.h
+tsli.c
