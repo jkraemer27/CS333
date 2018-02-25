@@ -55,8 +55,9 @@ sys_sbrk(void)
   if(growproc(n) < 0)
     return -1;
   return addr;
-}
 
+    cprintf("Implement this");
+}
 int
 sys_sleep(void)
 {
@@ -169,6 +170,33 @@ sys_getprocs(void)
 
    getproctable(num, procarray);
    return 1;
+}
+#endif
+#ifdef CS333_P3P4
+int
+sys_setpriority(void)
+{
+    int pid, prio;
+
+    if(argint(0, &pid) < 0)
+	return -1;
+
+    if(argint(1, &prio) < 0)
+	return -1;
+    
+    if(prio < 0 || prio > MAX){
+	cprintf("\nPriority: %d out of bounds, enter a value between 0 and %d\n", prio, MAX);
+	return -2;
+    }
+	
+    if(pid < 1){
+	cprintf("\nInvalid PID\n");
+	return -3;
+    }
+
+    setpriority(pid, prio);
+
+    return 1;
 }
 #endif
 

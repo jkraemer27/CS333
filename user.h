@@ -1,6 +1,7 @@
 struct stat;
 struct rtcdate;
 struct uproc;
+struct proc;
 
 // system calls
 int fork(void);
@@ -35,6 +36,9 @@ uint getppid(void);
 uint setuid(uint);
 uint setgid(uint);
 int getprocs(uint max, struct uproc*);
+#endif
+#ifdef CS333_P3P4
+int setpriority(int pid, int priority);
 #endif
 
 

@@ -92,3 +92,6 @@ testSched.c
 testuidgid.c
 uproc.h
 tsli.c
+sptest.c
+p4test.c
+setpriority.c

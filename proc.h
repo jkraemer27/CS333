@@ -74,7 +74,8 @@ struct proc {
 
 #ifdef CS333_P3P4
   struct proc* next;
-
+  uint priority;
+  int budget;
 #endif
 };
 

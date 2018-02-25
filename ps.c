@@ -12,7 +12,7 @@ main(void)
   struct uproc *p = malloc(sizeof(struct uproc) * MAXPROC);
   int processes = getprocs(MAXPROC, p);
 
-  printf(1, "PID     Name    UID	GID	PPID    Elapsed CPU	State   Size\n");
+  printf(1, "PID\tName\tUID\tGID\tPPID\tPrio\tElapsed CPU\tState\tSize\n");
 
 
     for(int i = 0; i < processes; ++i)
@@ -24,23 +24,22 @@ main(void)
 	    cpue = p[i].CPU_total_ticks/1000;
 	    cpum = p[i].CPU_total_ticks%1000;
 
-	    printf(1, "%d\t%s\t%d\t%d\t%d\t%d.", p[i].pid, p[i].name, p[i].uid, p[i].gid, p[i].ppid, elapsed);
+	    printf(1, "%d\t%s\t%d\t%d\t%d\t%d\t%d", p[i].pid, p[i].name, p[i].uid, p[i].gid, p[i].ppid,p[i].priority, elapsed);
 
 	    if(milli < 10)
 		printf(1, "00%d\t%d.", milli, cpue);
 	    if(milli > 9 && milli < 100)
 		printf(1, "0%d\t%d.", milli, cpue);
-	    else
+	    if(milli > 100)
 		printf(1, "%d\t%d.", milli, cpue);
 
 	    if(cpum < 10)    
 		printf(1, "00%d\t%s\t%d\n", cpum, p[i].state, p[i].size);
 	    if(cpum > 9 && cpum < 100)
 		printf(1, "0%d\t%s\t%d\n", cpum, p[i].state, p[i].size);
-	    else
+	    if(cpum > 100)
 		printf(1, "%d\t%s\t%d\n", cpum, p[i].state, p[i].size);
 
-	    //printf(1, "%d\t%s\t%d\t%d\t%d\t%d.%d\t%d.%d\t%s\t%d\n", p[i].pid, p[i].name, p[i].uid, p[i].gid, p[i].ppid, elapsed, milli, cpue, cpum, p[i].state, p[i].size);
 	}
     }
     printf(1, "\n");
