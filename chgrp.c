@@ -2,9 +2,23 @@
 #include "types.h"
 #include "user.h"
 int
-main(void)
+main(int argc, char ** argv)
 {
-  printf(1, "Not imlpemented yet.\n");
+  char file[16];
+  int perm;
+
+  if(!argv[2] || !argv[1]){
+      printf(1, "\nIncorrect number of arguments provided!\n\nUse \"chgrp [permission] [program]\"\n\n");
+      exit();
+  }
+
+  strcpy(file, argv[2]);
+
+  perm = atoi(argv[1]);
+
+  if(chgrp(file, perm) == -1)
+      printf(1, "\nError\n");
+
   exit();
 }
 

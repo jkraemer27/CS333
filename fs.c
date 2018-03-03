@@ -184,6 +184,11 @@ ialloc(uint dev, short type)
     bp = bread(dev, IBLOCK(inum, sb));
     dip = (struct dinode*)bp->data + inum%IPB;
     if(dip->type == 0){  // a free inode
+      #ifdef CS333_P5
+      dip->uid = UIDGID;
+      dip->gid = UIDGID;
+      dip->mode.asInt = MODE;
+      #endif
       memset(dip, 0, sizeof(*dip));
       dip->type = type;
       log_write(bp);   // mark it allocated on the disk
@@ -209,6 +214,11 @@ iupdate(struct inode *ip)
   dip->minor = ip->minor;
   dip->nlink = ip->nlink;
   dip->size = ip->size;
+#ifdef CS333_P5
+  dip->uid = ip->uid;
+  dip->gid = ip->gid;
+  dip->mode.asInt = ip->mode.asInt;
+#endif
   memmove(dip->addrs, ip->addrs, sizeof(ip->addrs));
   log_write(bp);
   brelse(bp);
@@ -286,6 +296,11 @@ ilock(struct inode *ip)
     ip->minor = dip->minor;
     ip->nlink = dip->nlink;
     ip->size = dip->size;
+#ifdef CS333_P5
+    ip->uid = dip->uid;
+    ip->gid = dip->gid;
+    ip->mode.asInt = dip->mode.asInt;
+#endif
     memmove(ip->addrs, dip->addrs, sizeof(ip->addrs));
     brelse(bp);
     ip->flags |= I_VALID;
@@ -427,6 +442,11 @@ stati(struct inode *ip, struct stat *st)
   st->type = ip->type;
   st->nlink = ip->nlink;
   st->size = ip->size;
+#ifdef CS333_P5
+  st->uid = ip->uid;
+  st->gid = ip->gid;
+  st->mode.asInt = ip->mode.asInt;
+#endif
 }
 
 //PAGEBREAK!
@@ -649,3 +669,71 @@ nameiparent(char *path, char *name)
 {
   return namex(path, 1, name);
 }
+#ifdef CS333_P5
+int
+chmod(char * pathname, int mode){
+    struct inode * ip;
+
+    begin_op();
+    ip = namei(pathname);
+    if(ip){
+	ilock(ip);
+	ip->mode.asInt = mode;
+	iupdate(ip);
+	iunlock(ip);
+	iput(ip);
+	end_op();
+    }
+    else{
+	end_op();
+	return -1;
+    }
+
+
+    return 0;
+}
+
+int 
+chown(char * pathname, int owner){
+    struct inode * ip;
+
+    begin_op();
+    ip = namei(pathname);
+    if(ip){
+	ilock(ip);
+	ip-> uid = owner;
+	iupdate(ip);
+	iunlock(ip);
+	iput(ip);
+	end_op();
+    }
+    else{
+	end_op();
+	return -1;
+    }
+
+    return 0;
+}
+
+int
+chgrp(char * pathname, int group){
+    struct inode * ip;
+
+    begin_op();
+    ip = namei(pathname);
+    if(ip){
+	ilock(ip);
+	ip-> gid = group;
+	iupdate(ip);
+	iunlock(ip);
+	iput(ip);
+	end_op();
+    }
+    else{
+	end_op();
+	return -1;
+    }
+
+    return 0;
+}
+#endif

@@ -12,8 +12,10 @@
 #define NBUF         (MAXOPBLOCKS*3)  // size of disk block cache
 // #define FSSIZE       1000  // size of file system in blocks
 #define FSSIZE		    2000  // size of file system in blocks  // CS333 requires a larger FS.
-#define UIDGID		    0   // initial value of UID and GID set to 0
+#define UIDGID		    0   // initial value of UID and GID set to 0 - being used for processes 
+				// and files created by mkfs when the file system is created
 #define MAXPROC		    16  //max num of processes
 #define MAX		    4  //Maximum priority of a process in the ready list
 #define TICKS_TO_PROMOTE    5000 //number of CPU ticks before a process priority is promoted 
 #define BUDGET		    5000 // a process's tick budget before moving down a queue
+#define MODE		    493  //default mode in decimal converted from octal 0755 to decimal is 493

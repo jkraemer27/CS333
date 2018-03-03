@@ -440,3 +440,59 @@ sys_pipe(void)
   fd[1] = fd1;
   return 0;
 }
+
+#ifdef CS333_P5
+int
+sys_chmod(void)
+{
+    char *path;
+    int mod;
+    if(argstr(0, &path) < 0 || argint(1, &mod) < 0)
+	return -1;
+
+    if(mod < 0000 || mod > 1023){
+	cprintf("\nPlease enter mode between 0000 and 0755\n");
+	return -1;
+    }
+
+    cprintf("%d", mod);
+    return chmod(path, mod);
+
+}
+
+int
+sys_chown(void)
+{
+    char *path;
+    int own;
+    if(argstr(0, &path) < 0 || argint(1, &own) < 0)
+	return -1;
+
+    if(own < 0 || own > 32767){
+	cprintf("\nPlease enter a UID between 0 and 32767\n");
+	return -1;
+    }
+
+    cprintf("%d", own);
+
+    return chown(path, own);
+}
+
+int
+sys_chgrp(void)
+{
+    char *path;
+    int grp;
+    if(argstr(0, &path) < 0 || argint(1, &grp) < 0)
+	return -1;
+
+    if(grp < 0 || grp > 32767){
+	cprintf("\nPlease enter a GID between 0 and 32767\n");
+	return -1;
+    }
+
+    cprintf("%d", grp);
+    return chgrp(path, grp);
+
+}
+#endif
