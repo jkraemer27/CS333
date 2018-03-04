@@ -18,4 +18,4 @@
 #define MAX		    4  //Maximum priority of a process in the ready list
 #define TICKS_TO_PROMOTE    5000 //number of CPU ticks before a process priority is promoted 
 #define BUDGET		    5000 // a process's tick budget before moving down a queue
-#define MODE		    493  //default mode in decimal converted from octal 0755 to decimal is 493
+#define MODE		    0755  //default mode in decimal converted from octal 0755 to decimal is 493

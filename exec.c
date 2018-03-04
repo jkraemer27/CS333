@@ -6,6 +6,7 @@
 #include "defs.h"
 #include "x86.h"
 #include "elf.h"
+#include "stat.h"
 
 int
 exec(char *path, char **argv)
@@ -23,7 +24,24 @@ exec(char *path, char **argv)
     end_op();
     return -1;
   }
+
+
   ilock(ip);
+
+#ifdef CS333_P5
+  struct stat st;
+  stati(ip, &st);
+  if(st.mode.flags.u_x == 1 || st.mode.flags.g_x == 1 || st.mode.flags.o_x == 1){
+    if(st.mode.flags.setuid == 1)
+      proc -> uid = st.uid;
+  }
+  else{
+    iunlock(ip);
+    end_op();
+    return -1;
+  }
+#endif
+
   pgdir = 0;
 
   // Check ELF header

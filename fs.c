@@ -685,6 +685,7 @@ chmod(char * pathname, int mode){
 	end_op();
     }
     else{
+	iunlock(ip);
 	end_op();
 	return -1;
     }
@@ -708,6 +709,7 @@ chown(char * pathname, int owner){
 	end_op();
     }
     else{
+	iunlock(ip);
 	end_op();
 	return -1;
     }
@@ -730,6 +732,7 @@ chgrp(char * pathname, int group){
 	end_op();
     }
     else{
+	iunlock(ip);
 	end_op();
 	return -1;
     }

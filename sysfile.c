@@ -450,8 +450,8 @@ sys_chmod(void)
     if(argstr(0, &path) < 0 || argint(1, &mod) < 0)
 	return -1;
 
-    if(mod < 0000 || mod > 1023){
-	cprintf("\nPlease enter mode between 0000 and 0755\n");
+    if(mod < 0000 || mod > 01777){
+	cprintf("\nPlease enter mode between 0000 and 01777\n");
 	return -1;
     }
 
